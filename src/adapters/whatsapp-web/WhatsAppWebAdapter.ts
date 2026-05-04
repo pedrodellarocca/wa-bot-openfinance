@@ -44,9 +44,8 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
       if (msg.fromMe) return;
       if (msg.isStatus) return;
 
-      const contact = await msg.getContact();
-      const from = contact.number;
-      console.log(`[debug] mensagem recebida — from raw: "${msg.from}" → número: "${from}"`);
+      const from = msg.from.replace(/@c\.us$/, "").replace(/@lid$/, "");
+      console.log(`[debug] mensagem recebida — from: "${from}"`);
       const incoming: IncomingMessage = { from, body: msg.body };
 
       try {
