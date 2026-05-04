@@ -13,7 +13,10 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
   constructor() {
     this.client = new Client({
       authStrategy: new LocalAuth(),
-      puppeteer: { args: ["--no-sandbox", "--disable-setuid-sandbox"] },
+      puppeteer: {
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      },
     });
   }
 
