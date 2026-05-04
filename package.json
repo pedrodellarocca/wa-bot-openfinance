@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "setup:pluggy": "ts-node scripts/setup-pluggy.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
