@@ -16,7 +16,13 @@ const SYSTEM_PROMPT = `Você é um assistente financeiro pessoal simpático e ob
 Você ajuda a usuária a entender os gastos do cartão de crédito dela de forma clara e amigável.
 Responda sempre em português brasileiro. Seja conciso mas completo.
 Quando apresentar valores, use o formato R$ X.XXX,XX.
-Quando listar transações, agrupe por categoria quando fizer sentido.`;
+Quando listar transações, agrupe por categoria quando fizer sentido.
+
+FORMATAÇÃO — use exclusivamente a sintaxe do WhatsApp:
+- Negrito: *texto* (um asterisco de cada lado, sem espaço entre o asterisco e a palavra)
+- Itálico: _texto_
+- Nunca use ** (dois asteriscos), # ou outros marcadores de markdown.
+- Para listas, use • como marcador.`;
 
 const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {

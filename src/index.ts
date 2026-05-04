@@ -1,13 +1,25 @@
-import "./config"; // valida env vars na inicialização
+import "./config";
+import { prisma } from "./db/prisma";
 import { WhatsAppWebAdapter } from "./adapters/whatsapp-web/WhatsAppWebAdapter";
 import { handleMessage } from "./core/orchestrator";
 
 async function main() {
   const adapter = new WhatsAppWebAdapter();
 
-  adapter.onMessage(async (msg) => {
-    return handleMessage(msg);
+  adapter.onReady(async () => {
+    const users = await prisma.user.findMany({ where: { whatsappId: null } });
+    for (const user of users) {
+      const wid = await adapter.getWhatsAppId(user.phone);
+      if (wid) {
+        await prisma.user.update({ where: { id: user.id }, data: { whatsappId: wid } });
+        console.log(`✅ ${user.phone} → ${wid}`);
+      } else {
+        console.warn(`⚠️  Número não encontrado no WhatsApp: ${user.phone}`);
+      }
+    }
   });
+
+  adapter.onMessage(async (msg) => handleMessage(msg));
 
   console.log("Iniciando bot...");
   await adapter.start();

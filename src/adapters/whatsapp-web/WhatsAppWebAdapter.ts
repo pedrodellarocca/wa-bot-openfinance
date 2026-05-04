@@ -3,17 +3,17 @@ import qrcode from "qrcode-terminal";
 import type { IMessagingProvider, IncomingMessage } from "../../core/ports/IMessagingProvider";
 
 type MessageHandler = (msg: IncomingMessage) => Promise<string>;
+type ReadyHandler = () => Promise<void>;
 
 export class WhatsAppWebAdapter implements IMessagingProvider {
   private client: Client;
   private handler: MessageHandler | null = null;
+  private readyHandler: ReadyHandler | null = null;
 
   constructor() {
     this.client = new Client({
       authStrategy: new LocalAuth(),
-      puppeteer: {
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      },
+      puppeteer: { args: ["--no-sandbox", "--disable-setuid-sandbox"] },
     });
   }
 
@@ -21,8 +21,19 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
     this.handler = handler;
   }
 
+  onReady(handler: ReadyHandler): void {
+    this.readyHandler = handler;
+  }
+
   async send(to: string, text: string): Promise<void> {
     await this.client.sendMessage(to, text);
+  }
+
+  // Resolve o WhatsApp ID (LID ou c.us) a partir de um número de telefone
+  async getWhatsAppId(phone: string): Promise<string | null> {
+    const numberId = await this.client.getNumberId(phone);
+    if (!numberId) return null;
+    return numberId._serialized.replace(/@c\.us$/, "").replace(/@lid$/, "");
   }
 
   async start(): Promise<void> {
@@ -31,8 +42,9 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
       qrcode.generate(qr, { small: true });
     });
 
-    this.client.on("ready", () => {
+    this.client.on("ready", async () => {
       console.log("WhatsApp conectado e pronto!");
+      if (this.readyHandler) await this.readyHandler();
     });
 
     this.client.on("auth_failure", (msg) => {
@@ -45,14 +57,12 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
       if (msg.isStatus) return;
 
       const from = msg.from.replace(/@c\.us$/, "").replace(/@lid$/, "");
-      console.log(`[debug] mensagem recebida — from: "${from}"`);
+      console.log(`[msg] from: "${from}" → "${msg.body}"`);
       const incoming: IncomingMessage = { from, body: msg.body };
 
       try {
         const reply = await this.handler(incoming);
-        if (reply) {
-          await msg.reply(reply);
-        }
+        if (reply) await msg.reply(reply);
       } catch (err) {
         console.error("Erro ao processar mensagem:", err);
         await msg.reply("Desculpe, ocorreu um erro inesperado. Tente novamente.");
