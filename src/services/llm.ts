@@ -12,6 +12,14 @@ const openai = new OpenAI({
 const MODEL = "z-ai/glm-5.1";
 const HISTORY_LIMIT = 10;
 
+function toWhatsAppMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/gs, "*$1*")   // **bold** → *bold*
+    .replace(/__(.*?)__/gs, "_$1_")        // __italic__ → _italic_
+    .replace(/^#{1,6}\s+/gm, "")          // remove markdown headers
+    .replace(/^[-*]\s/gm, "• ");          // - item → • item
+}
+
 const SYSTEM_PROMPT = `Você é um assistente financeiro pessoal simpático e objetivo.
 Você ajuda a usuária a entender os gastos do cartão de crédito dela de forma clara e amigável.
 Responda sempre em português brasileiro. Seja conciso mas completo.
@@ -116,8 +124,10 @@ export async function processMessage(
     });
   }
 
-  const assistantReply =
+  const raw =
     response.choices[0].message.content ?? "Desculpe, não consegui processar sua mensagem.";
+
+  const assistantReply = toWhatsAppMarkdown(raw);
 
   await prisma.messageHistory.create({
     data: { phone, role: "assistant", content: assistantReply },
