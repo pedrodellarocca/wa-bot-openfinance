@@ -9,7 +9,7 @@ const openai = new OpenAI({
   apiKey: config.OPENROUTER_API_KEY,
 });
 
-const MODEL = "openai/gpt-4o-mini";
+const MODEL = "z-ai/glm-5.1";
 const HISTORY_LIMIT = 10;
 
 const SYSTEM_PROMPT = `Você é um assistente financeiro pessoal simpático e objetivo.
