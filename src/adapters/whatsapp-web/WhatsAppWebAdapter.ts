@@ -39,12 +39,14 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
       console.error("Falha na autenticação do WhatsApp:", msg);
     });
 
-    this.client.on("message", async (msg) => {
+    this.client.on("message_create", async (msg) => {
       if (!this.handler) return;
+      if (msg.fromMe) return;
       if (msg.isStatus) return;
 
-      // Normaliza o número removendo o sufixo @c.us
-      const from = msg.from.replace("@c.us", "");
+      const contact = await msg.getContact();
+      const from = contact.number;
+      console.log(`[debug] mensagem recebida — from raw: "${msg.from}" → número: "${from}"`);
       const incoming: IncomingMessage = { from, body: msg.body };
 
       try {

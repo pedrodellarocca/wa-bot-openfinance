@@ -10,6 +10,7 @@ datasource db {
 model User {
   id               String    @id @default(cuid())
   phone            String    @unique
+  whatsappId       String?   @unique
   itemId           String
   cardLast4        String
   pinHash          String
