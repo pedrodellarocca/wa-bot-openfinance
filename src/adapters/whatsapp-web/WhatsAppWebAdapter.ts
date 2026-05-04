@@ -14,7 +14,7 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
     this.client = new Client({
       authStrategy: new LocalAuth(),
       puppeteer: {
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH?.trim() || undefined,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       },
     });
