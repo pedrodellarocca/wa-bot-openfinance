@@ -61,10 +61,10 @@ export function startQrServer(getStatus: () => QrStatus): void {
     }
   });
 
-  server.listen(port, () => {
+  server.listen(port, "0.0.0.0", () => {
     const domain = process.env.RAILWAY_PUBLIC_DOMAIN;
     const base = domain ? `https://${domain}` : `http://localhost:${port}`;
-    console.log(`[qr-server] escutando na porta ${port}`);
+    console.log(`[qr-server] escutando em 0.0.0.0:${port}`);
     console.log(`[qr-server] abra: ${base}/qr?token=${token}`);
   });
 }
