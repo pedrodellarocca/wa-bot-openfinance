@@ -139,7 +139,7 @@ function buildHtml(connectToken: string): string {
 <body>
   <div class="card">
     <h1>🔗 Conectar C6 Bank na Pluggy</h1>
-    <p>Clique no botão abaixo para abrir o widget da Pluggy, selecione o <strong>C6 Bank</strong> e faça login com suas credenciais.</p>
+    <p>Clique no botão abaixo para abrir o widget da Pluggy. Selecione o <strong>C6 Bank</strong> (real, com a logomarca preta do C6) e faça login com seu usuário real do C6 — <strong>não</strong> o "Pluggy Bank" sandbox.</p>
     <button id="btn-connect">Conectar minha conta no C6 Bank</button>
 
     <div class="result" id="result">
@@ -163,6 +163,9 @@ function buildHtml(connectToken: string): string {
     document.getElementById('btn-connect').addEventListener('click', function () {
       const pluggyConnect = new PluggyConnect({
         connectToken: "${connectToken}",
+        includeSandbox: false,
+        countries: ['BR'],
+        connectorTypes: ['PERSONAL_BANK'],
         onSuccess: function (data) {
           const itemId = data.item.id;
           document.getElementById('item-id-value').textContent = itemId;
