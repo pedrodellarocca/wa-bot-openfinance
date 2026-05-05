@@ -1,6 +1,25 @@
+import fs from "fs";
+import path from "path";
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import type { IMessagingProvider, IncomingMessage } from "../../core/ports/IMessagingProvider";
+
+const AUTH_DIR = "./.wwebjs_auth";
+
+// Container restarts can leave a stale Chromium SingletonLock pointing at the
+// old hostname; the new container then refuses to launch. Strip them on boot.
+function clearChromiumSingletonLocks(dir: string): void {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      clearChromiumSingletonLocks(full);
+    } else if (entry.name.startsWith("Singleton")) {
+      fs.unlinkSync(full);
+      console.log(`[chromium] removido lock obsoleto: ${full}`);
+    }
+  }
+}
 
 type MessageHandler = (msg: IncomingMessage) => Promise<string>;
 type ReadyHandler = () => Promise<void>;
@@ -46,6 +65,8 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
   }
 
   async start(): Promise<void> {
+    clearChromiumSingletonLocks(AUTH_DIR);
+
     this.client.on("qr", (qr) => {
       this.latestQr = qr;
       console.log(`\n[${new Date().toLocaleTimeString()}] Novo QR Code gerado:\n`);
