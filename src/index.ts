@@ -2,9 +2,11 @@ import "./config";
 import { prisma } from "./db/prisma";
 import { WhatsAppWebAdapter } from "./adapters/whatsapp-web/WhatsAppWebAdapter";
 import { handleMessage } from "./core/orchestrator";
+import { startQrServer } from "./qr-server";
 
 async function main() {
   const adapter = new WhatsAppWebAdapter();
+  startQrServer(() => adapter.getStatus());
 
   adapter.onReady(async () => {
     const users = await prisma.user.findMany({ where: { whatsappId: null } });

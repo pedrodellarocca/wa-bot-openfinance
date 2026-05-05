@@ -9,6 +9,8 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
   private client: Client;
   private handler: MessageHandler | null = null;
   private readyHandler: ReadyHandler | null = null;
+  private latestQr: string | null = null;
+  private ready = false;
 
   constructor() {
     this.client = new Client({
@@ -39,13 +41,20 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
     return numberId._serialized.replace(/@c\.us$/, "").replace(/@lid$/, "");
   }
 
+  getStatus(): { ready: boolean; qr: string | null } {
+    return { ready: this.ready, qr: this.latestQr };
+  }
+
   async start(): Promise<void> {
     this.client.on("qr", (qr) => {
-      console.log("\nEscaneie o QR Code abaixo com o WhatsApp:\n");
+      this.latestQr = qr;
+      console.log(`\n[${new Date().toLocaleTimeString()}] Novo QR Code gerado:\n`);
       qrcode.generate(qr, { small: true });
     });
 
     this.client.on("ready", async () => {
+      this.ready = true;
+      this.latestQr = null;
       console.log("WhatsApp conectado e pronto!");
       if (this.readyHandler) await this.readyHandler();
     });
