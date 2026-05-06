@@ -124,23 +124,28 @@ async function executeBuscarFatura(
     });
   }
 
-  // cartao === "compartilhado"
-  if (!user.sharedCardLast4) {
+  if (args.cartao === "compartilhado") {
+    if (!user.sharedCardLast4) {
+      return JSON.stringify({
+        error: "Você não tem cartão compartilhado configurado.",
+      });
+    }
+
+    const txs = await getCardTransactions(user.itemId, {
+      kind: "shared",
+      cardLast4: user.sharedCardLast4,
+    });
+    const userShare = sumAmounts(txs);
     return JSON.stringify({
-      error: "Você não tem cartão compartilhado configurado.",
+      cartao: "compartilhado",
+      total_bruto: userShare * 2,
+      sua_parte: userShare,
+      transacoes: txs,
     });
   }
 
-  const txs = await getCardTransactions(user.itemId, {
-    kind: "shared",
-    cardLast4: user.sharedCardLast4,
-  });
-  const userShare = sumAmounts(txs);
   return JSON.stringify({
-    cartao: "compartilhado",
-    total_bruto: userShare * 2,
-    sua_parte: userShare,
-    transacoes: txs,
+    error: `Cartão inválido: ${String(args.cartao)}. Use 'pessoal', 'compartilhado' ou 'todos'.`,
   });
 }
 

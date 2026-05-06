@@ -12,12 +12,16 @@ const users = [
     phone: "5548984516922",
     itemId: SANDBOX_ITEM_ID,
     cardLast4: "8634",
+    sharedCardLast4: null as string | null,
+    isAdmin: true,
     label: "Dev (você)",
   },
   {
     phone: "5548984678502",
     itemId: SANDBOX_ITEM_ID,
     cardLast4: "9425",
+    sharedCardLast4: "0114",
+    isAdmin: false,
     label: "Noiva",
   },
 ];
@@ -28,15 +32,30 @@ async function main() {
   for (const u of users) {
     const user = await prisma.user.upsert({
       where: { phone: u.phone },
-      update: { itemId: u.itemId, cardLast4: u.cardLast4, pinHash },
-      create: { phone: u.phone, itemId: u.itemId, cardLast4: u.cardLast4, pinHash },
+      update: {
+        itemId: u.itemId,
+        cardLast4: u.cardLast4,
+        sharedCardLast4: u.sharedCardLast4,
+        isAdmin: u.isAdmin,
+        pinHash,
+      },
+      create: {
+        phone: u.phone,
+        itemId: u.itemId,
+        cardLast4: u.cardLast4,
+        sharedCardLast4: u.sharedCardLast4,
+        isAdmin: u.isAdmin,
+        pinHash,
+      },
     });
 
     console.log(`✅ ${u.label}:`);
-    console.log(`   phone:     ${user.phone}`);
-    console.log(`   itemId:    ${user.itemId}`);
-    console.log(`   cardLast4: ${user.cardLast4}`);
-    console.log(`   pinHash:   ${user.pinHash.slice(0, 20)}...`);
+    console.log(`   phone:           ${user.phone}`);
+    console.log(`   itemId:          ${user.itemId}`);
+    console.log(`   cardLast4:       ${user.cardLast4}`);
+    console.log(`   sharedCardLast4: ${user.sharedCardLast4 ?? "(nenhum)"}`);
+    console.log(`   isAdmin:         ${user.isAdmin}`);
+    console.log(`   pinHash:         ${user.pinHash.slice(0, 20)}...`);
   }
 }
 

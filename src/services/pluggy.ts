@@ -73,10 +73,17 @@ export async function getCardTransactions(
       for (const tx of txResponse.results) {
         const cardNumber = tx.creditCardMetadata?.cardNumber ?? null;
 
-        if (mode.kind === "personal" && cardNumber !== mode.cardLast4) continue;
-        if (mode.kind === "shared" && cardNumber !== mode.cardLast4) continue;
+        if (
+          (mode.kind === "personal" || mode.kind === "shared") &&
+          !cardNumber?.endsWith(mode.cardLast4)
+        ) {
+          continue;
+        }
 
-        const amount = mode.kind === "shared" ? tx.amount / 2 : tx.amount;
+        const amount =
+          mode.kind === "shared"
+            ? Math.round(tx.amount * 50) / 100
+            : tx.amount;
 
         all.push({
           description: tx.description,
