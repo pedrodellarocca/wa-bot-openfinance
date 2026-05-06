@@ -43,6 +43,15 @@ export async function getCardTransactions(
 ): Promise<Transaction[]> {
   const pluggy = getClient();
 
+  // DEBUG: temporary instrumentation to diagnose 401 from Railway
+  console.log("[pluggy] cred fingerprint:",
+    `clientId.len=${config.PLUGGY_CLIENT_ID.length}`,
+    `clientId.last4=${config.PLUGGY_CLIENT_ID.slice(-4)}`,
+    `secret.len=${config.PLUGGY_CLIENT_SECRET.length}`,
+    `secret.last4=${config.PLUGGY_CLIENT_SECRET.slice(-4)}`,
+  );
+  console.log("[pluggy] fetchAccounts itemId=", itemId, "mode=", mode.kind);
+
   const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(
       () =>

@@ -197,6 +197,8 @@ export async function processMessage(
           const args = JSON.parse(toolCall.function.arguments) as BuscarFaturaArgs;
           toolResult = await executeBuscarFatura(args, user);
         } catch (err) {
+          // DEBUG: log the full error so we can see Pluggy SDK details
+          console.error("[buscar_fatura] FAILED:", err);
           toolResult = JSON.stringify({
             error: err instanceof Error ? err.message : "Erro ao buscar transações.",
           });
