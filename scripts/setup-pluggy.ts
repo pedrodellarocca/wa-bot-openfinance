@@ -158,7 +158,7 @@ function buildHtml(connectToken: string): string {
     </div>
   </div>
 
-  <script src="https://cdn.pluggy.ai/pluggy-connect/v2.0/pluggy-connect.js"></script>
+  <script src="https://cdn.pluggy.ai/pluggy-connect/v2.8.2/pluggy-connect.js"></script>
   <script>
     document.getElementById('btn-connect').addEventListener('click', function () {
       const pluggyConnect = new PluggyConnect({
