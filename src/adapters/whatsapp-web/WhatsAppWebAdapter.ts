@@ -104,4 +104,8 @@ export class WhatsAppWebAdapter implements IMessagingProvider {
 
     await this.client.initialize();
   }
+
+  async stop(): Promise<void> {
+    await this.client.destroy();
+  }
 }

@@ -7,7 +7,7 @@ interface QrStatus {
   qr: string | null;
 }
 
-export function startQrServer(getStatus: () => QrStatus): void {
+export function startQrServer(getStatus: () => QrStatus): http.Server {
   const port = Number(process.env.PORT) || 3000;
   const token = process.env.QR_TOKEN || crypto.randomBytes(8).toString("hex");
 
@@ -67,4 +67,6 @@ export function startQrServer(getStatus: () => QrStatus): void {
     console.log(`[qr-server] escutando em 0.0.0.0:${port}`);
     console.log(`[qr-server] abra: ${base}/qr?token=${token}`);
   });
+
+  return server;
 }
