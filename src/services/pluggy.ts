@@ -80,10 +80,11 @@ export async function getCardTransactions(
           continue;
         }
 
-        const amount =
-          mode.kind === "shared"
-            ? Math.round(tx.amount * 50) / 100
-            : tx.amount;
+        // For shared mode, divide each transaction by 2. We do NOT round here:
+        // rounding per-transaction loses precision for odd-cent amounts (e.g. R$ 10,01
+        // halved becomes 5.005 — rounding each half to 5.01 makes 2× recovery 10.02,
+        // not 10.01). Aggregation + final rounding happens in the LLM tool layer.
+        const amount = mode.kind === "shared" ? tx.amount / 2 : tx.amount;
 
         all.push({
           description: tx.description,

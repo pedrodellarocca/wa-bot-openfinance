@@ -135,11 +135,14 @@ async function executeBuscarFatura(
       kind: "shared",
       cardLast4: user.sharedCardLast4,
     });
-    const userShare = sumAmounts(txs);
+    // Aggregate, then round once. txs[].amount is the unrounded half of each
+    // raw transaction. total_bruto = 2× that sum, rounded to cents (recovers
+    // the exact original total). sua_parte rounds the user's half to cents.
+    const rawUserShare = sumAmounts(txs);
     return JSON.stringify({
       cartao: "compartilhado",
-      total_bruto: userShare * 2,
-      sua_parte: userShare,
+      total_bruto: Math.round(rawUserShare * 200) / 100,
+      sua_parte: Math.round(rawUserShare * 100) / 100,
       transacoes: txs,
     });
   }
