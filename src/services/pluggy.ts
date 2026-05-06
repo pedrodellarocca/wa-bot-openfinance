@@ -6,7 +6,13 @@ export interface Transaction {
   amount: number;
   date: string;
   category: string | null;
+  cardNumber: string | null;
 }
+
+export type FetchMode =
+  | { kind: "all" }
+  | { kind: "personal"; cardLast4: string }
+  | { kind: "shared"; cardLast4: string };
 
 let client: PluggyClient | null = null;
 
@@ -33,7 +39,7 @@ function today(): string {
 
 export async function getCardTransactions(
   itemId: string,
-  cardLast4: string
+  mode: FetchMode
 ): Promise<Transaction[]> {
   const pluggy = getClient();
 
@@ -56,7 +62,7 @@ export async function getCardTransactions(
       return [];
     }
 
-    const allTransactions: Transaction[] = [];
+    const all: Transaction[] = [];
 
     for (const account of accounts.results) {
       const txResponse = await pluggy.fetchTransactions(account.id, {
@@ -64,21 +70,25 @@ export async function getCardTransactions(
         to: today(),
       });
 
-      const filtered = txResponse.results.filter((tx) =>
-        tx.creditCardMetadata?.cardNumber?.endsWith(cardLast4)
-      );
+      for (const tx of txResponse.results) {
+        const cardNumber = tx.creditCardMetadata?.cardNumber ?? null;
 
-      allTransactions.push(
-        ...filtered.map((tx) => ({
+        if (mode.kind === "personal" && cardNumber !== mode.cardLast4) continue;
+        if (mode.kind === "shared" && cardNumber !== mode.cardLast4) continue;
+
+        const amount = mode.kind === "shared" ? tx.amount / 2 : tx.amount;
+
+        all.push({
           description: tx.description,
-          amount: tx.amount,
+          amount,
           date: tx.date.toISOString().split("T")[0],
           category: tx.category,
-        }))
-      );
+          cardNumber,
+        });
+      }
     }
 
-    return allTransactions;
+    return all;
   })();
 
   return Promise.race([fetchPromise, timeoutPromise]);
