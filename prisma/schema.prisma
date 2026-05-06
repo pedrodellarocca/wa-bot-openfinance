@@ -13,8 +13,6 @@ model User {
   whatsappId       String?   @unique
   itemId           String
   cardLast4        String
-  sharedCardLast4  String?
-  isAdmin          Boolean   @default(false)
   pinHash          String
   sessionExpiresAt DateTime?
   createdAt        DateTime  @default(now())

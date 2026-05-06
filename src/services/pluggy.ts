@@ -6,13 +6,7 @@ export interface Transaction {
   amount: number;
   date: string;
   category: string | null;
-  cardNumber: string | null;
 }
-
-export type FetchMode =
-  | { kind: "all" }
-  | { kind: "personal"; cardLast4: string }
-  | { kind: "shared"; cardLast4: string };
 
 let client: PluggyClient | null = null;
 
@@ -39,7 +33,7 @@ function today(): string {
 
 export async function getCardTransactions(
   itemId: string,
-  mode: FetchMode
+  cardLast4: string
 ): Promise<Transaction[]> {
   const pluggy = getClient();
 
@@ -50,7 +44,7 @@ export async function getCardTransactions(
     `secret.len=${config.PLUGGY_CLIENT_SECRET.length}`,
     `secret.last4=${config.PLUGGY_CLIENT_SECRET.slice(-4)}`,
   );
-  console.log("[pluggy] fetchAccounts itemId=", itemId, "mode=", mode.kind);
+  console.log("[pluggy] fetchAccounts itemId=", itemId, "cardLast4=", cardLast4);
 
   const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(
@@ -71,7 +65,7 @@ export async function getCardTransactions(
       return [];
     }
 
-    const all: Transaction[] = [];
+    const allTransactions: Transaction[] = [];
 
     for (const account of accounts.results) {
       const txResponse = await pluggy.fetchTransactions(account.id, {
@@ -79,33 +73,21 @@ export async function getCardTransactions(
         to: today(),
       });
 
-      for (const tx of txResponse.results) {
-        const cardNumber = tx.creditCardMetadata?.cardNumber ?? null;
+      const filtered = txResponse.results.filter((tx) =>
+        tx.creditCardMetadata?.cardNumber?.endsWith(cardLast4)
+      );
 
-        if (
-          (mode.kind === "personal" || mode.kind === "shared") &&
-          !cardNumber?.endsWith(mode.cardLast4)
-        ) {
-          continue;
-        }
-
-        // For shared mode, divide each transaction by 2. We do NOT round here:
-        // rounding per-transaction loses precision for odd-cent amounts (e.g. R$ 10,01
-        // halved becomes 5.005 — rounding each half to 5.01 makes 2× recovery 10.02,
-        // not 10.01). Aggregation + final rounding happens in the LLM tool layer.
-        const amount = mode.kind === "shared" ? tx.amount / 2 : tx.amount;
-
-        all.push({
+      allTransactions.push(
+        ...filtered.map((tx) => ({
           description: tx.description,
-          amount,
+          amount: tx.amount,
           date: tx.date.toISOString().split("T")[0],
           category: tx.category,
-          cardNumber,
-        });
-      }
+        }))
+      );
     }
 
-    return all;
+    return allTransactions;
   })();
 
   return Promise.race([fetchPromise, timeoutPromise]);

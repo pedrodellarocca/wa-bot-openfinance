@@ -30,7 +30,7 @@ export async function handleMessage(msg: IncomingMessage): Promise<string> {
   }
 
   try {
-    return await processMessage(msg.from, msg.body, user);
+    return await processMessage(msg.from, msg.body, user.itemId, user.cardLast4);
   } catch (err) {
     console.error("Erro no orquestrador:", err);
     return "Ocorreu um erro ao processar sua mensagem. Tente novamente em instantes.";
